@@ -6,31 +6,11 @@ const trackName = document.querySelector("#trackName");
 const playPause = document.querySelector("#playPause");
 const previousTrack = document.querySelector("#previousTrack");
 const nextTrack = document.querySelector("#nextTrack");
+const musicFiles = document.querySelector("#musicFiles");
 
-let playlist = [
-  {
-    name: "Music is my Saviour - S3RL feat Mixie Moon",
-    url: "music/Music is my Saviour - S3RL feat Mixie Moon.mp3"
-  },
-  {
-    name: "Love Quotes",
-    url: "music/Jenevieve - Love Quotes (Official Music Video).mp3"
-  },
-  {
-    name: "Internet Baby",
-    url: "music/Internet Baby - S3RL x BEANIE.mp3"
-  },
-  {
-    name: "Holding You, Holding Me",
-    url: "music/Holding You, Holding Me - Cigarettes After Sex.mp3"
-  },
-  {
-    name: "Over Now",
-    url: "music/Calvin Harris, The Weeknd - Over Now (Official Video).mp3"
-  }
-];
-
+let playlist = [];
 let currentTrackIndex = 0;
+let objectUrls = [];
 
 function createPetal(index) {
   const petal = document.createElement("span");
@@ -49,55 +29,108 @@ function createPetal(index) {
   return petal;
 }
 
-function startCelebration() {
-  hero.classList.add("revealed");
-
-  if (!petalsContainer.childElementCount) {
-    const petals = Array.from(
-      { length: 48 },
-      (_, index) => createPetal(index)
-    );
-    petalsContainer.append(...petals);
-  }
-
-  if (!audioPlayer.src) {
-    loadTrack(0, true);
-  }
-}
-
-function updateTrackInfo() {
-  const track = playlist[currentTrackIndex];
-  trackName.textContent = track ? track.name : "";
-}
-
-function loadTrack(index, shouldPlay = false) {
-  if (!playlist.length) {
+function updateTrackInfo(message) {
+  if (message) {
+    trackName.textContent = message;
     return;
   }
 
-  currentTrackIndex = (index + playlist.length) % playlist.length;
-  audioPlayer.src = playlist[currentTrackIndex].url;
-  updateTrackInfo();
+  const track = playlist[currentTrackIndex];
+  trackName.textContent = track ? track.name : "Elegí uno o más MP3";
+}
 
-  if (shouldPlay) {
-    audioPlayer.play().catch(() => {});
-  }
+function updateControls() {
+  const hasTracks = playlist.length > 0;
+
+  playPause.disabled = !hasTracks;
+  previousTrack.disabled = !hasTracks;
+  nextTrack.disabled = !hasTracks;
+  playPause.setAttribute("aria-disabled", String(!hasTracks));
+  previousTrack.setAttribute("aria-disabled", String(!hasTracks));
+  nextTrack.setAttribute("aria-disabled", String(!hasTracks));
 }
 
 function updatePlayButton() {
   playPause.textContent = audioPlayer.paused ? "▶" : "⏸";
 }
 
+function loadTrack(index, shouldPlay = false) {
+  if (!playlist.length) {
+    audioPlayer.removeAttribute("src");
+    audioPlayer.load();
+    updateTrackInfo();
+    updateControls();
+    updatePlayButton();
+    return;
+  }
+
+  currentTrackIndex = (index + playlist.length) % playlist.length;
+  audioPlayer.src = playlist[currentTrackIndex].url;
+  updateTrackInfo();
+  updateControls();
+
+  if (shouldPlay) {
+    audioPlayer.play().catch(() => {
+      updatePlayButton();
+    });
+  }
+}
+
+function startCelebration() {
+  hero.classList.add("revealed");
+
+  if (!petalsContainer.childElementCount) {
+    const petals = Array.from({ length: 48 }, (_, index) => createPetal(index));
+    petalsContainer.append(...petals);
+  }
+}
+
+function clearObjectUrls() {
+  objectUrls.forEach((url) => URL.revokeObjectURL(url));
+  objectUrls = [];
+}
+
+function loadSelectedFiles(files) {
+  clearObjectUrls();
+
+  playlist = Array.from(files, (file) => {
+    const url = URL.createObjectURL(file);
+    objectUrls.push(url);
+
+    return {
+      name: file.name.replace(/\.mp3$/i, ""),
+      url
+    };
+  });
+
+  if (playlist.length) {
+    loadTrack(0, true);
+  } else {
+    loadTrack(0);
+  }
+}
+
 revealButton.addEventListener("click", startCelebration);
 
+musicFiles.addEventListener("change", (event) => {
+  loadSelectedFiles(event.target.files);
+});
+
 playPause.addEventListener("click", () => {
+  if (!playlist.length) {
+    updateTrackInfo("Primero elegí uno o más MP3");
+    return;
+  }
+
   if (!audioPlayer.src) {
     loadTrack(0, true);
     return;
   }
 
   if (audioPlayer.paused) {
-    audioPlayer.play();
+    audioPlayer.play().catch(() => {
+      updatePlayButton();
+    });
   } else {
     audioPlayer.pause();
   }
@@ -113,9 +146,17 @@ nextTrack.addEventListener("click", () => {
 
 audioPlayer.addEventListener("play", updatePlayButton);
 audioPlayer.addEventListener("pause", updatePlayButton);
+audioPlayer.addEventListener("error", () => {
+  updateTrackInfo("No se pudo cargar la canción");
+  updatePlayButton();
+});
 
 audioPlayer.addEventListener("ended", () => {
   loadTrack(currentTrackIndex + 1, true);
 });
 
+window.addEventListener("beforeunload", clearObjectUrls);
+
 updateTrackInfo();
+updateControls();
+updatePlayButton();
