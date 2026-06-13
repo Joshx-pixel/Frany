@@ -1,6 +1,7 @@
 const hero = document.querySelector("#hero");
 const revealButton = document.querySelector("#revealButton");
 const petalsContainer = document.querySelector("#petals");
+const fireworksContainer = document.querySelector("#fireworks");
 const audioPlayer = document.querySelector("#audioPlayer");
 const trackName = document.querySelector("#trackName");
 const playPause = document.querySelector("#playPause");
@@ -21,6 +22,15 @@ const playlist = [
 }));
 
 let currentTrackIndex = 0;
+let fireworksTimer;
+
+const fireworkColors = [
+  ["#ff4d8d", "#ffd166", "#fff7ad"],
+  ["#5ee7ff", "#7c4dff", "#d7b8ff"],
+  ["#69ff97", "#00d4ff", "#faff70"],
+  ["#ff7a3d", "#ffdf5d", "#ff4dd2"],
+  ["#ffffff", "#8df7ff", "#b8ff6a"]
+];
 
 function createPetal(index) {
   const petal = document.createElement("span");
@@ -37,6 +47,43 @@ function createPetal(index) {
   petal.style.setProperty("--drift", `${drift}px`);
 
   return petal;
+}
+
+
+function createFirework() {
+  const firework = document.createElement("span");
+  const palette = fireworkColors[Math.floor(Math.random() * fireworkColors.length)];
+  const sparkCount = 18 + Math.floor(Math.random() * 10);
+
+  firework.className = "firework";
+  firework.style.left = `${10 + Math.random() * 80}vw`;
+  firework.style.top = `${8 + Math.random() * 55}vh`;
+  firework.style.setProperty("--burst-color", palette[0]);
+  firework.style.setProperty("--burst-glow", palette[1]);
+
+  for (let index = 0; index < sparkCount; index += 1) {
+    const spark = document.createElement("i");
+    const angle = (360 / sparkCount) * index + Math.random() * 10;
+    const distance = 70 + Math.random() * 110;
+    const color = palette[index % palette.length];
+
+    spark.style.setProperty("--angle", `${angle}deg`);
+    spark.style.setProperty("--distance", `${distance}px`);
+    spark.style.setProperty("--spark-color", color);
+    firework.append(spark);
+  }
+
+  fireworksContainer.append(firework);
+  window.setTimeout(() => firework.remove(), 1400);
+}
+
+function startFireworks() {
+  if (fireworksTimer) {
+    return;
+  }
+
+  createFirework();
+  fireworksTimer = window.setInterval(createFirework, 1500);
 }
 
 function updateTrackInfo(message) {
@@ -99,6 +146,7 @@ function loadTrack(index, shouldPlay = false) {
 
 function startCelebration() {
   hero.classList.add("revealed");
+  startFireworks();
 
   if (!petalsContainer.childElementCount) {
     const petals = Array.from({ length: 48 }, (_, index) => createPetal(index));
