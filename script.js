@@ -6,11 +6,21 @@ const trackName = document.querySelector("#trackName");
 const playPause = document.querySelector("#playPause");
 const previousTrack = document.querySelector("#previousTrack");
 const nextTrack = document.querySelector("#nextTrack");
-const musicFiles = document.querySelector("#musicFiles");
+const volumeControl = document.querySelector("#volumeControl");
+const volumeValue = document.querySelector("#volumeValue");
 
-let playlist = [];
+const playlist = [
+  "Music is my Saviour - S3RL feat Mixie Moon.mp3",
+  "Jenevieve - Love Quotes (Official Music Video).mp3",
+  "Internet Baby - S3RL x BEANIE.mp3",
+  "Holding You, Holding Me - Cigarettes After Sex.mp3",
+  "Calvin Harris, The Weeknd - Over Now (Official Video).mp3"
+].map((fileName) => ({
+  name: fileName.replace(/\.mp3$/i, ""),
+  url: encodeURI(fileName)
+}));
+
 let currentTrackIndex = 0;
-let objectUrls = [];
 
 function createPetal(index) {
   const petal = document.createElement("span");
@@ -36,7 +46,7 @@ function updateTrackInfo(message) {
   }
 
   const track = playlist[currentTrackIndex];
-  trackName.textContent = track ? track.name : "Elegí uno o más MP3";
+  trackName.textContent = track ? track.name : "No hay canciones cargadas";
 }
 
 function updateControls() {
@@ -52,6 +62,12 @@ function updateControls() {
 
 function updatePlayButton() {
   playPause.textContent = audioPlayer.paused ? "▶" : "⏸";
+}
+
+function updateVolume() {
+  const volume = Number(volumeControl.value);
+  audioPlayer.volume = volume / 100;
+  volumeValue.textContent = `${volume}%`;
 }
 
 function loadTrack(index, shouldPlay = false) {
@@ -71,6 +87,7 @@ function loadTrack(index, shouldPlay = false) {
 
   if (shouldPlay) {
     audioPlayer.play().catch(() => {
+      updateTrackInfo("Tocá ▶ para iniciar la música");
       updatePlayButton();
     });
   }
@@ -83,42 +100,25 @@ function startCelebration() {
     const petals = Array.from({ length: 48 }, (_, index) => createPetal(index));
     petalsContainer.append(...petals);
   }
-}
 
-function clearObjectUrls() {
-  objectUrls.forEach((url) => URL.revokeObjectURL(url));
-  objectUrls = [];
-}
-
-function loadSelectedFiles(files) {
-  clearObjectUrls();
-
-  playlist = Array.from(files, (file) => {
-    const url = URL.createObjectURL(file);
-    objectUrls.push(url);
-
-    return {
-      name: file.name.replace(/\.mp3$/i, ""),
-      url
-    };
-  });
-
-  if (playlist.length) {
+  if (!audioPlayer.src) {
     loadTrack(0, true);
-  } else {
-    loadTrack(0);
+    return;
+  }
+
+  if (audioPlayer.paused) {
+    audioPlayer.play().catch(() => {
+      updateTrackInfo("Tocá ▶ para iniciar la música");
+      updatePlayButton();
+    });
   }
 }
 
 revealButton.addEventListener("click", startCelebration);
 
-musicFiles.addEventListener("change", (event) => {
-  loadSelectedFiles(event.target.files);
-});
-
 playPause.addEventListener("click", () => {
   if (!playlist.length) {
-    updateTrackInfo("Primero elegí uno o más MP3");
+    updateTrackInfo("No hay canciones cargadas");
     return;
   }
 
@@ -144,6 +144,8 @@ nextTrack.addEventListener("click", () => {
   loadTrack(currentTrackIndex + 1, true);
 });
 
+volumeControl.addEventListener("input", updateVolume);
+
 audioPlayer.addEventListener("play", updatePlayButton);
 audioPlayer.addEventListener("pause", updatePlayButton);
 audioPlayer.addEventListener("error", () => {
@@ -155,8 +157,7 @@ audioPlayer.addEventListener("ended", () => {
   loadTrack(currentTrackIndex + 1, true);
 });
 
-window.addEventListener("beforeunload", clearObjectUrls);
-
-updateTrackInfo();
+updateVolume();
+loadTrack(0);
 updateControls();
 updatePlayButton();
