@@ -32,13 +32,18 @@
           <button class="control-button play-button" id="playPause" type="button" aria-label="Reproducir o pausar">▶</button>
           <button class="control-button" id="nextTrack" type="button" aria-label="Siguiente canción">⏭</button>
         </div>
+
+        <label class="file-picker" for="musicFiles">
+          Elegir MP3
+          <input id="musicFiles" type="file" accept="audio/mpeg,.mp3" multiple />
+        </label>
         <audio id="audioPlayer" preload="metadata"></audio>
       </section>
 
       <div class="petals" id="petals" aria-hidden="true"></div>
 
-      <img src="ghostface.jpg" alt="Decoración" class="corner-image image-right">
-      <img src="lucy.png" alt="Lucy" class="corner-image image-left"> 
+      <img src="ghostface.jpg" alt="Decoración" class="corner-image image-right" />
+      <img src="lucy.png" alt="Lucy" class="corner-image image-left" />
     </main>
 
     <script src="script.js"></script>
