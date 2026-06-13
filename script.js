@@ -20,7 +20,23 @@ const playlist = [
   url: encodeURI(fileName)
 }));
 
+const fallbackTrack = {
+  name: "Melodía de cumpleaños",
+  notes: [
+    [392, 0.2], [392, 0.2], [440, 0.45], [392, 0.45], [523.25, 0.45], [493.88, 0.8],
+    [392, 0.2], [392, 0.2], [440, 0.45], [392, 0.45], [587.33, 0.45], [523.25, 0.8],
+    [392, 0.2], [392, 0.2], [783.99, 0.45], [659.25, 0.45], [523.25, 0.45], [493.88, 0.45], [440, 0.8],
+    [698.46, 0.2], [698.46, 0.2], [659.25, 0.45], [523.25, 0.45], [587.33, 0.45], [523.25, 0.9]
+  ]
+};
+
 let currentTrackIndex = 0;
+let shouldResumeAfterError = false;
+let fallbackAudioContext;
+let fallbackGain;
+let fallbackTimer;
+let fallbackNoteIndex = 0;
+let isFallbackPlaying = false;
 
 function createPetal(index) {
   const petal = document.createElement("span");
@@ -45,12 +61,17 @@ function updateTrackInfo(message) {
     return;
   }
 
+  if (isFallbackPlaying) {
+    trackName.textContent = fallbackTrack.name;
+    return;
+  }
+
   const track = playlist[currentTrackIndex];
-  trackName.textContent = track ? track.name : "No hay canciones cargadas";
+  trackName.textContent = track ? track.name : fallbackTrack.name;
 }
 
 function updateControls() {
-  const hasTracks = playlist.length > 0;
+  const hasTracks = playlist.length > 0 || Boolean(window.AudioContext || window.webkitAudioContext);
 
   playPause.disabled = !hasTracks;
   previousTrack.disabled = !hasTracks;
@@ -61,13 +82,88 @@ function updateControls() {
 }
 
 function updatePlayButton() {
-  playPause.textContent = audioPlayer.paused ? "▶" : "⏸";
+  playPause.textContent = audioPlayer.paused && !isFallbackPlaying ? "▶" : "⏸";
 }
 
 function updateVolume() {
   const volume = Number(volumeControl.value);
   audioPlayer.volume = volume / 100;
   volumeValue.textContent = `${volume}%`;
+
+  if (fallbackGain) {
+    fallbackGain.gain.value = volume / 100;
+  }
+}
+
+function stopFallbackMusic() {
+  window.clearTimeout(fallbackTimer);
+  fallbackTimer = undefined;
+  isFallbackPlaying = false;
+  fallbackNoteIndex = 0;
+  updatePlayButton();
+}
+
+function scheduleFallbackNote() {
+  if (!isFallbackPlaying || !fallbackAudioContext || !fallbackGain) {
+    return;
+  }
+
+  const [frequency, duration] = fallbackTrack.notes[fallbackNoteIndex];
+  const oscillator = fallbackAudioContext.createOscillator();
+  const noteGain = fallbackAudioContext.createGain();
+  const now = fallbackAudioContext.currentTime;
+
+  oscillator.type = "triangle";
+  oscillator.frequency.value = frequency;
+  noteGain.gain.setValueAtTime(0, now);
+  noteGain.gain.linearRampToValueAtTime(0.9, now + 0.02);
+  noteGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+  oscillator.connect(noteGain).connect(fallbackGain);
+  oscillator.start(now);
+  oscillator.stop(now + duration);
+
+  fallbackNoteIndex = (fallbackNoteIndex + 1) % fallbackTrack.notes.length;
+  fallbackTimer = window.setTimeout(scheduleFallbackNote, duration * 1000 + 45);
+}
+
+function startFallbackMusic() {
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+  if (!AudioContext) {
+    updateTrackInfo("Tu navegador no permite reproducir música");
+    updatePlayButton();
+    return;
+  }
+
+  if (!fallbackAudioContext) {
+    fallbackAudioContext = new AudioContext();
+    fallbackGain = fallbackAudioContext.createGain();
+    fallbackGain.connect(fallbackAudioContext.destination);
+    updateVolume();
+  }
+
+  audioPlayer.pause();
+  shouldResumeAfterError = false;
+  fallbackAudioContext.resume().then(() => {
+    if (isFallbackPlaying) {
+      return;
+    }
+
+    isFallbackPlaying = true;
+    fallbackNoteIndex = 0;
+    updateTrackInfo();
+    updatePlayButton();
+    scheduleFallbackNote();
+  });
+}
+
+function playCurrentTrack() {
+  shouldResumeAfterError = true;
+  stopFallbackMusic();
+
+  return audioPlayer.play().catch(() => {
+    startFallbackMusic();
+  });
 }
 
 function loadTrack(index, shouldPlay = false) {
@@ -77,19 +173,21 @@ function loadTrack(index, shouldPlay = false) {
     updateTrackInfo();
     updateControls();
     updatePlayButton();
+
+    if (shouldPlay) {
+      startFallbackMusic();
+    }
     return;
   }
 
+  stopFallbackMusic();
   currentTrackIndex = (index + playlist.length) % playlist.length;
   audioPlayer.src = playlist[currentTrackIndex].url;
   updateTrackInfo();
   updateControls();
 
   if (shouldPlay) {
-    audioPlayer.play().catch(() => {
-      updateTrackInfo("Tocá ▶ para iniciar la música");
-      updatePlayButton();
-    });
+    playCurrentTrack();
   }
 }
 
@@ -107,18 +205,20 @@ function startCelebration() {
   }
 
   if (audioPlayer.paused) {
-    audioPlayer.play().catch(() => {
-      updateTrackInfo("Tocá ▶ para iniciar la música");
-      updatePlayButton();
-    });
+    playCurrentTrack();
   }
 }
 
 revealButton.addEventListener("click", startCelebration);
 
 playPause.addEventListener("click", () => {
+  if (isFallbackPlaying) {
+    stopFallbackMusic();
+    return;
+  }
+
   if (!playlist.length) {
-    updateTrackInfo("No hay canciones cargadas");
+    startFallbackMusic();
     return;
   }
 
@@ -128,10 +228,9 @@ playPause.addEventListener("click", () => {
   }
 
   if (audioPlayer.paused) {
-    audioPlayer.play().catch(() => {
-      updatePlayButton();
-    });
+    playCurrentTrack();
   } else {
+    shouldResumeAfterError = false;
     audioPlayer.pause();
   }
 });
@@ -149,6 +248,11 @@ volumeControl.addEventListener("input", updateVolume);
 audioPlayer.addEventListener("play", updatePlayButton);
 audioPlayer.addEventListener("pause", updatePlayButton);
 audioPlayer.addEventListener("error", () => {
+  if (shouldResumeAfterError) {
+    startFallbackMusic();
+    return;
+  }
+
   updateTrackInfo("No se pudo cargar la canción");
   updatePlayButton();
 });
