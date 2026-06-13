@@ -23,6 +23,8 @@ const playlist = [
 
 let currentTrackIndex = 0;
 let fireworksTimer;
+let shouldResumePlayback = false;
+const unavailableTracks = new Set();
 
 const fireworkColors = [
   ["#ff4d8d", "#ffd166", "#fff7ad"],
@@ -97,7 +99,7 @@ function updateTrackInfo(message) {
 }
 
 function updateControls() {
-  const hasTracks = playlist.length > 0;
+  const hasTracks = playlist.length > 0 && unavailableTracks.size < playlist.length;
 
   playPause.disabled = !hasTracks;
   previousTrack.disabled = !hasTracks;
@@ -118,10 +120,26 @@ function updateVolume() {
 }
 
 function playCurrentTrack() {
+  shouldResumePlayback = true;
+
   return audioPlayer.play().catch(() => {
     updateTrackInfo("No se pudo reproducir la canción");
     updatePlayButton();
   });
+}
+
+function findNextAvailableTrack(startIndex, direction = 1) {
+  if (!playlist.length || unavailableTracks.size >= playlist.length) {
+    return -1;
+  }
+
+  let index = (startIndex + playlist.length) % playlist.length;
+
+  while (unavailableTracks.has(index)) {
+    index = (index + direction + playlist.length) % playlist.length;
+  }
+
+  return index;
 }
 
 function loadTrack(index, shouldPlay = false) {
@@ -134,7 +152,19 @@ function loadTrack(index, shouldPlay = false) {
     return;
   }
 
-  currentTrackIndex = (index + playlist.length) % playlist.length;
+  const nextTrackIndex = findNextAvailableTrack(index, index >= currentTrackIndex ? 1 : -1);
+
+  if (nextTrackIndex === -1) {
+    audioPlayer.removeAttribute("src");
+    audioPlayer.load();
+    updateTrackInfo("No hay canciones disponibles");
+    updateControls();
+    updatePlayButton();
+    return;
+  }
+
+  currentTrackIndex = nextTrackIndex;
+  shouldResumePlayback = shouldPlay;
   audioPlayer.src = playlist[currentTrackIndex].url;
   updateTrackInfo();
   updateControls();
@@ -193,10 +223,22 @@ nextTrack.addEventListener("click", () => {
 volumeControl.addEventListener("input", updateVolume);
 
 audioPlayer.addEventListener("play", updatePlayButton);
-audioPlayer.addEventListener("pause", updatePlayButton);
-audioPlayer.addEventListener("error", () => {
-  updateTrackInfo("No se pudo cargar la canción");
+audioPlayer.addEventListener("pause", () => {
+  shouldResumePlayback = false;
   updatePlayButton();
+});
+audioPlayer.addEventListener("error", () => {
+  unavailableTracks.add(currentTrackIndex);
+
+  if (unavailableTracks.size >= playlist.length) {
+    updateTrackInfo("No hay canciones disponibles");
+    updateControls();
+    updatePlayButton();
+    return;
+  }
+
+  updateTrackInfo("Saltando canción no disponible...");
+  loadTrack(currentTrackIndex + 1, shouldResumePlayback);
 });
 
 audioPlayer.addEventListener("ended", () => {

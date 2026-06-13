@@ -365,8 +365,9 @@ body {
     right: 14px;
   }
 
-  .corner-image {
-    width: 260px;
+  .image-right,
+  .image-left {
+    width: min(260px, 46vw);
   }
 }
 
@@ -431,5 +432,32 @@ body {
   100% {
     opacity: 0;
     transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance)) scale(0.18);
+  }
+}
+
+
+@media (max-width: 480px) {
+  .message-card {
+    padding: 24px;
+  }
+
+  .message-card p {
+    font-size: clamp(1.15rem, 7vw, 1.7rem);
+  }
+
+  .image-right,
+  .image-left {
+    width: min(190px, 44vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
