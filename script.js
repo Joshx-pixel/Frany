@@ -2,7 +2,6 @@ const hero = document.querySelector("#hero");
 const revealButton = document.querySelector("#revealButton");
 const petalsContainer = document.querySelector("#petals");
 const audioPlayer = document.querySelector("#audioPlayer");
-const audioFiles = document.querySelector("#audioFiles");
 const trackName = document.querySelector("#trackName");
 const playPause = document.querySelector("#playPause");
 const previousTrack = document.querySelector("#previousTrack");
@@ -106,10 +105,9 @@ function seekTo(seconds) {
 revealButton.addEventListener("click", startCelebration);
 
 playPause.addEventListener("click", () => {
-  if (!playlist.length) {
-    audioFiles.click();
-    return;
-  }
+if (!playlist.length) {
+  return;
+}
 
   if (audioPlayer.paused) {
     audioPlayer.play();
@@ -121,14 +119,6 @@ playPause.addEventListener("click", () => {
 previousTrack.addEventListener("click", () => loadTrack(currentTrackIndex - 1, !audioPlayer.paused));
 nextTrack.addEventListener("click", () => loadTrack(currentTrackIndex + 1, !audioPlayer.paused));
 
-audioFiles.addEventListener("change", (event) => {
-  playlist.forEach((track) => URL.revokeObjectURL(track.url));
-  playlist = Array.from(event.target.files)
-    .filter((file) => file.type === "audio/mpeg" || file.name.toLowerCase().endsWith(".mp3"))
-    .map((file) => ({ name: file.name, url: URL.createObjectURL(file) }));
-
-  loadTrack(0, false);
-});
 
 audioPlayer.addEventListener("loadedmetadata", () => {
   seekBar.max = Math.floor(audioPlayer.duration);
