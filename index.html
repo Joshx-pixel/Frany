@@ -21,6 +21,37 @@
         </p>
       </section>
 
+      <section class="music-player" aria-label="Reproductor de música">
+        <div class="track-info">
+          <span class="track-label">Canción actual</span>
+          <strong id="trackName">Elegí uno o más MP3</strong>
+        </div>
+
+        <div class="player-controls" aria-label="Controles de reproducción">
+          <button class="control-button" id="previousTrack" type="button" aria-label="Canción anterior">⏮</button>
+          <button class="control-button play-button" id="playPause" type="button" aria-label="Reproducir o pausar">▶</button>
+          <button class="control-button" id="nextTrack" type="button" aria-label="Siguiente canción">⏭</button>
+        </div>
+
+        <div class="timeline">
+          <span id="currentTime">0:00</span>
+          <input id="seekBar" type="range" min="0" max="0" value="0" step="1" aria-label="Mover la canción al segundo deseado" />
+          <span id="duration">0:00</span>
+        </div>
+
+        <label class="time-jump" for="jumpTo">
+          Ir a segundo/minuto
+          <input id="jumpTo" type="text" inputmode="numeric" placeholder="1:25 o 85" aria-label="Minuto o segundo al que querés saltar" />
+        </label>
+
+        <label class="file-picker" for="audioFiles">
+          Cargar MP3
+          <input id="audioFiles" type="file" accept="audio/mp3,audio/mpeg" multiple />
+        </label>
+
+        <audio id="audioPlayer" preload="metadata"></audio>
+      </section>
+
       <div class="petals" id="petals" aria-hidden="true"></div>
 
       <img src="ghostface.jpg" alt="Decoración" class="corner-image image-right">
