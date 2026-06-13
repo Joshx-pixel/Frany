@@ -6,12 +6,29 @@ const trackName = document.querySelector("#trackName");
 const playPause = document.querySelector("#playPause");
 const previousTrack = document.querySelector("#previousTrack");
 const nextTrack = document.querySelector("#nextTrack");
-const seekBar = document.querySelector("#seekBar");
-const currentTime = document.querySelector("#currentTime");
-const durationTime = document.querySelector("#duration");
-const jumpTo = document.querySelector("#jumpTo");
 
-let playlist = [];
+let playlist = [
+  {
+    name: "Music is my Saviour - S3RL feat Mixie Moon",
+    url: "music/Music is my Saviour - S3RL feat Mixie Moon.mp3"
+  },
+  {
+    name: "Love Quotes",
+    url: "music/Jenevieve - Love Quotes (Official Music Video).mp3"
+  },
+  {
+    name: "Internet Baby",
+    url: "music/Internet Baby - S3RL x BEANIE.mp3"
+  },
+  {
+    name: "Holding You, Holding Me",
+    url: "music/Holding You, Holding Me - Cigarettes After Sex.mp3"
+  },
+  {
+    name: "Over Now",
+    url: "music/Calvin Harris, The Weeknd - Over Now (Official Video).mp3"
+  }
+];
 let currentTrackIndex = 0;
 
 function createPetal(index) {
@@ -40,22 +57,14 @@ function startCelebration() {
   }
 }
 
-function formatTime(seconds) {
-  if (!Number.isFinite(seconds)) {
-    return "0:00";
-  }
+
 
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, "0");
   return `${minutes}:${remainingSeconds}`;
 }
 
-function parseTimeToSeconds(value) {
-  const cleanValue = value.trim();
 
-  if (!cleanValue) {
-    return 0;
-  }
 
   if (cleanValue.includes(":")) {
     const parts = cleanValue.split(":").map((part) => Number(part));
@@ -73,7 +82,7 @@ function parseTimeToSeconds(value) {
 
 function updateTrackInfo() {
   const track = playlist[currentTrackIndex];
-  trackName.textContent = track ? track.name.replace(/\.mp3$/i, "") : "Elegí uno o más MP3";
+  trackName.textContent = track ? track.name : "";
 }
 
 function loadTrack(index, shouldPlay = false) {
@@ -105,9 +114,10 @@ function seekTo(seconds) {
 revealButton.addEventListener("click", startCelebration);
 
 playPause.addEventListener("click", () => {
-if (!playlist.length) {
-  return;
-}
+  if (!audioPlayer.src) {
+    loadTrack(0, true);
+    return;
+  }
 
   if (audioPlayer.paused) {
     audioPlayer.play();
@@ -120,25 +130,13 @@ previousTrack.addEventListener("click", () => loadTrack(currentTrackIndex - 1, !
 nextTrack.addEventListener("click", () => loadTrack(currentTrackIndex + 1, !audioPlayer.paused));
 
 
-audioPlayer.addEventListener("loadedmetadata", () => {
-  seekBar.max = Math.floor(audioPlayer.duration);
-  durationTime.textContent = formatTime(audioPlayer.duration);
-});
 
-audioPlayer.addEventListener("timeupdate", () => {
-  seekBar.value = Math.floor(audioPlayer.currentTime);
-  currentTime.textContent = formatTime(audioPlayer.currentTime);
-});
+
+
 
 audioPlayer.addEventListener("play", updatePlayButton);
 audioPlayer.addEventListener("pause", updatePlayButton);
 audioPlayer.addEventListener("ended", () => loadTrack(currentTrackIndex + 1, true));
 
-seekBar.addEventListener("input", () => seekTo(Number(seekBar.value)));
 
-jumpTo.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    seekTo(parseTimeToSeconds(jumpTo.value));
-    jumpTo.value = "";
-  }
-});
+
