@@ -29,6 +29,7 @@ let playlist = [
     url: "music/Calvin Harris, The Weeknd - Over Now (Official Video).mp3"
   }
 ];
+
 let currentTrackIndex = 0;
 
 function createPetal(index) {
@@ -52,32 +53,16 @@ function startCelebration() {
   hero.classList.add("revealed");
 
   if (!petalsContainer.childElementCount) {
-    const petals = Array.from({ length: 48 }, (_, index) => createPetal(index));
+    const petals = Array.from(
+      { length: 48 },
+      (_, index) => createPetal(index)
+    );
     petalsContainer.append(...petals);
   }
-}
 
-
-
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, "0");
-  return `${minutes}:${remainingSeconds}`;
-}
-
-
-
-  if (cleanValue.includes(":")) {
-    const parts = cleanValue.split(":").map((part) => Number(part));
-
-    if (parts.some((part) => Number.isNaN(part))) {
-      return audioPlayer.currentTime;
-    }
-
-    return parts.reduce((total, part) => total * 60 + part, 0);
+  if (!audioPlayer.src) {
+    loadTrack(0, true);
   }
-
-  const seconds = Number(cleanValue);
-  return Number.isNaN(seconds) ? audioPlayer.currentTime : seconds;
 }
 
 function updateTrackInfo() {
@@ -95,20 +80,12 @@ function loadTrack(index, shouldPlay = false) {
   updateTrackInfo();
 
   if (shouldPlay) {
-    audioPlayer.play();
+    audioPlayer.play().catch(() => {});
   }
 }
 
 function updatePlayButton() {
   playPause.textContent = audioPlayer.paused ? "▶" : "⏸";
-}
-
-function seekTo(seconds) {
-  if (!Number.isFinite(audioPlayer.duration)) {
-    return;
-  }
-
-  audioPlayer.currentTime = Math.min(Math.max(seconds, 0), audioPlayer.duration);
 }
 
 revealButton.addEventListener("click", startCelebration);
@@ -126,17 +103,19 @@ playPause.addEventListener("click", () => {
   }
 });
 
-previousTrack.addEventListener("click", () => loadTrack(currentTrackIndex - 1, !audioPlayer.paused));
-nextTrack.addEventListener("click", () => loadTrack(currentTrackIndex + 1, !audioPlayer.paused));
+previousTrack.addEventListener("click", () => {
+  loadTrack(currentTrackIndex - 1, true);
+});
 
-
-
-
-
+nextTrack.addEventListener("click", () => {
+  loadTrack(currentTrackIndex + 1, true);
+});
 
 audioPlayer.addEventListener("play", updatePlayButton);
 audioPlayer.addEventListener("pause", updatePlayButton);
-audioPlayer.addEventListener("ended", () => loadTrack(currentTrackIndex + 1, true));
 
+audioPlayer.addEventListener("ended", () => {
+  loadTrack(currentTrackIndex + 1, true);
+});
 
-
+updateTrackInfo();
