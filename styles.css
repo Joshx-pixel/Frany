@@ -84,28 +84,66 @@ body {
   outline: none;
 }
 
-.message-card {
-  max-width: 850px;
-  padding: clamp(28px, 6vw, 58px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 32px;
+
+.message-board {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  width: min(920px, calc(100vw - 32px));
+  gap: clamp(14px, 2.4vw, 24px);
+  margin: 100px auto 120px;
   opacity: 0;
-  transform: translateY(26px) scale(0.96);
   pointer-events: none;
-  background: rgba(23, 8, 55, 0.42);
-  box-shadow: 0 24px 80px rgba(5, 1, 22, 0.45);
-  text-align: center;
-  backdrop-filter: blur(12px);
-  transition: opacity 1s ease, transform 1s ease;
+  transition: opacity 0.4s ease;
 }
 
-.message-card p {
-  margin: 0;
+.message-box {
+  width: min(680px, 86vw);
+  padding: clamp(18px, 4vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 28px;
   color: #fff;
-  font-size: clamp(1.5rem, 4vw, 3rem);
-  font-weight: 650;
-  line-height: 1.35;
+  font-size: clamp(1.2rem, 3vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.28;
+  text-align: center;
   text-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  background: rgba(23, 8, 55, 0.56);
+  box-shadow: 0 24px 70px rgba(5, 1, 22, 0.42), inset 0 0 28px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  transform: translateY(28px) scale(0.94) rotate(var(--rotation));
+}
+
+.message-box-left {
+  justify-self: start;
+  margin-left: clamp(0px, 5vw, 56px);
+}
+
+.message-box-right {
+  justify-self: end;
+  margin-right: clamp(0px, 5vw, 56px);
+}
+
+.hero.revealed .message-board {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hero.revealed .message-box {
+  animation: show-message-box 0.9s cubic-bezier(0.19, 1, 0.22, 1) var(--delay) forwards;
+}
+
+@keyframes show-message-box {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.94) rotate(var(--rotation));
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(var(--rotation));
+  }
 }
 
 .petals {
@@ -139,14 +177,8 @@ body {
   transform: rotate(-30deg);
 }
 
-.hero.revealed::before,
-.hero.revealed .message-card {
+.hero.revealed::before {
   opacity: 1;
-}
-
-.hero.revealed .message-card {
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
 }
 
 .hero.revealed .intro {
@@ -356,8 +388,8 @@ body {
     overflow: auto;
   }
 
-  .message-card {
-    margin-bottom: 270px;
+  .message-board {
+    margin: 95px auto 270px;
   }
 
   .music-player {
@@ -437,12 +469,14 @@ body {
 
 
 @media (max-width: 480px) {
-  .message-card {
-    padding: 24px;
+  .message-board {
+    gap: 16px;
   }
 
-  .message-card p {
-    font-size: clamp(1.15rem, 7vw, 1.7rem);
+  .message-box {
+    width: min(100%, 88vw);
+    padding: 18px;
+    font-size: clamp(1.05rem, 6vw, 1.5rem);
   }
 
   .image-right,
