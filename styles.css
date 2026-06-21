@@ -94,7 +94,7 @@ body {
   z-index: 3;
   display: grid;
   width: min(920px, calc(100vw - 32px));
-  min-height: 220px;
+  min-height: 264px;
   place-items: center;
   margin: 0 auto;
   opacity: 0;
@@ -106,8 +106,8 @@ body {
 .message-box {
   grid-area: 1 / 1;
   width: fit-content;
-  max-width: min(680px, 86vw);
-  padding: clamp(18px, 4vw, 34px);
+  max-width: min(816px, 92vw);
+  padding: clamp(22px, 4.8vw, 41px);
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 28px;
   color: #fff;
@@ -488,8 +488,8 @@ body {
 
 @media (max-width: 480px) {
   .message-box {
-    max-width: min(100%, 88vw);
-    padding: 18px;
+    max-width: min(100%, 92vw);
+    padding: 22px;
     font-size: clamp(1.05rem, 6vw, 1.5rem);
   }
 
