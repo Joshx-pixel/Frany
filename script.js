@@ -9,6 +9,8 @@ const previousTrack = document.querySelector("#previousTrack");
 const nextTrack = document.querySelector("#nextTrack");
 const volumeControl = document.querySelector("#volumeControl");
 const volumeValue = document.querySelector("#volumeValue");
+const messageBoxes = Array.from(document.querySelectorAll(".message-box"));
+
 
 const playlist = [
   "Music is my Saviour - S3RL feat Mixie Moon.mp3",
@@ -24,6 +26,8 @@ const playlist = [
 let currentTrackIndex = 0;
 let fireworksTimer;
 let shouldResumePlayback = false;
+let currentMessageIndex = 0;
+let continueHintTimer;
 const unavailableTracks = new Set();
 
 const fireworkColors = [
@@ -33,6 +37,35 @@ const fireworkColors = [
   ["#ff7a3d", "#ffdf5d", "#ff4dd2"],
   ["#ffffff", "#8df7ff", "#b8ff6a"]
 ];
+
+function showCurrentMessage() {
+  messageBoxes.forEach((messageBox, index) => {
+    messageBox.classList.toggle("is-active", index === currentMessageIndex);
+  });
+}
+
+function scheduleContinueHint() {
+  window.clearTimeout(continueHintTimer);
+  hero.classList.remove("show-continue-hint");
+
+  if (currentMessageIndex >= messageBoxes.length - 1) {
+    return;
+  }
+
+  continueHintTimer = window.setTimeout(() => {
+    hero.classList.add("show-continue-hint");
+  }, 1500);
+}
+
+function showNextMessage() {
+  if (!hero.classList.contains("revealed") || currentMessageIndex >= messageBoxes.length - 1) {
+    return;
+  }
+
+  currentMessageIndex += 1;
+  showCurrentMessage();
+  scheduleContinueHint();
+}
 
 function createPetal(index) {
   const petal = document.createElement("span");
@@ -176,6 +209,9 @@ function loadTrack(index, shouldPlay = false) {
 
 function startCelebration() {
   hero.classList.add("revealed");
+  currentMessageIndex = 0;
+  showCurrentMessage();
+  scheduleContinueHint();
   startFireworks();
 
   if (!petalsContainer.childElementCount) {
@@ -193,7 +229,18 @@ function startCelebration() {
   }
 }
 
-revealButton.addEventListener("click", startCelebration);
+revealButton.addEventListener("click", (event) => {
+  event.stopPropagation();
+  startCelebration();
+});
+
+hero.addEventListener("click", (event) => {
+  if (event.target.closest("button, input, label, audio")) {
+    return;
+  }
+
+  showNextMessage();
+});
 
 playPause.addEventListener("click", () => {
   if (!playlist.length) {
