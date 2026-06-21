@@ -90,7 +90,8 @@ body {
   z-index: 3;
   display: grid;
   width: min(920px, calc(100vw - 32px));
-  gap: clamp(14px, 2.4vw, 24px);
+  min-height: 220px;
+  place-items: center;
   margin: 100px auto 120px;
   opacity: 0;
   pointer-events: none;
@@ -98,6 +99,7 @@ body {
 }
 
 .message-box {
+  grid-area: 1 / 1;
   width: fit-content;
   max-width: min(680px, 86vw);
   padding: clamp(18px, 4vw, 34px);
@@ -113,17 +115,8 @@ body {
   background: rgba(23, 8, 55, 0.56);
   box-shadow: 0 24px 70px rgba(5, 1, 22, 0.42), inset 0 0 28px rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
-  transform: translateY(28px) scale(0.94) rotate(var(--rotation));
-}
-
-.message-box-left {
-  justify-self: start;
-  margin-left: clamp(0px, 5vw, 56px);
-}
-
-.message-box-right {
-  justify-self: end;
-  margin-right: clamp(0px, 5vw, 56px);
+  transform: translateY(28px) scale(0.94);
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
 .hero.revealed .message-board {
@@ -131,20 +124,38 @@ body {
   pointer-events: auto;
 }
 
-.hero.revealed .message-box {
-  animation: show-message-box 0.9s cubic-bezier(0.19, 1, 0.22, 1) var(--delay) forwards;
+.hero.revealed .message-box.is-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
-@keyframes show-message-box {
-  0% {
-    opacity: 0;
-    transform: translateY(28px) scale(0.94) rotate(var(--rotation));
-  }
+.continue-hint {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(18px, 4vh, 40px);
+  z-index: 5;
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+  color: #fff;
+  font-size: clamp(0.82rem, 2.8vw, 1rem);
+  font-weight: 800;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(23, 8, 55, 0.72);
+  box-shadow: 0 14px 38px rgba(5, 1, 22, 0.42);
+  backdrop-filter: blur(12px);
+  transform: translate(-50%, 18px) scale(0.96);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
 
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1) rotate(var(--rotation));
-  }
+.hero.revealed.show-continue-hint .continue-hint {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
 }
 
 .petals {
@@ -470,20 +481,10 @@ body {
 
 
 @media (max-width: 480px) {
-  .message-board {
-    gap: 16px;
-  }
-
   .message-box {
     max-width: min(100%, 88vw);
     padding: 18px;
     font-size: clamp(1.05rem, 6vw, 1.5rem);
-  }
-
-  .message-box-left,
-  .message-box-right {
-    margin-right: 0;
-    margin-left: 0;
   }
 
   .image-right,
