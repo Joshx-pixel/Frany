@@ -2,6 +2,7 @@ const hero = document.querySelector("#hero");
 const revealButton = document.querySelector("#revealButton");
 const petalsContainer = document.querySelector("#petals");
 const fireworksContainer = document.querySelector("#fireworks");
+const heartFinale = document.querySelector("#heartFinale");
 const audioPlayer = document.querySelector("#audioPlayer");
 const trackName = document.querySelector("#trackName");
 const playPause = document.querySelector("#playPause");
@@ -28,7 +29,19 @@ let fireworksTimer;
 let shouldResumePlayback = false;
 let currentMessageIndex = 0;
 let continueHintTimer;
+let heartFinaleTimer;
 const unavailableTracks = new Set();
+
+const heartPoints = Array.from({ length: 64 }, (_, index) => {
+  const t = (Math.PI * 2 * index) / 64;
+  const x = 16 * Math.sin(t) ** 3;
+  const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+
+  return {
+    x: x * 12,
+    y: y * 12
+  };
+});
 
 const fireworkColors = [
   ["#ff4d8d", "#ffd166", "#fff7ad"],
@@ -37,6 +50,42 @@ const fireworkColors = [
   ["#ff7a3d", "#ffdf5d", "#ff4dd2"],
   ["#ffffff", "#8df7ff", "#b8ff6a"]
 ];
+
+function resetHeartFinale() {
+  window.clearTimeout(heartFinaleTimer);
+  heartFinale.classList.remove("is-forming");
+  heartFinale.replaceChildren();
+}
+
+function createFinaleHeart() {
+  resetHeartFinale();
+
+  const hearts = heartPoints.map((point, index) => {
+    const heart = document.createElement("span");
+
+    heart.className = "small-heart";
+    heart.textContent = "❤";
+    heart.style.setProperty("--x", `${point.x}px`);
+    heart.style.setProperty("--y", `${point.y}px`);
+    heart.style.setProperty("--delay", `${index * 45}ms`);
+    heart.style.setProperty("--size", `${12 + (index % 5) * 2}px`);
+
+    return heart;
+  });
+
+  heartFinale.append(...hearts);
+  heartFinale.classList.add("is-forming");
+}
+
+function scheduleHeartFinale() {
+  if (currentMessageIndex < messageBoxes.length - 1) {
+    resetHeartFinale();
+    return;
+  }
+
+  window.clearTimeout(heartFinaleTimer);
+  heartFinaleTimer = window.setTimeout(createFinaleHeart, 700);
+}
 
 function showCurrentMessage() {
   messageBoxes.forEach((messageBox, index) => {
@@ -65,6 +114,7 @@ function showNextMessage() {
   currentMessageIndex += 1;
   showCurrentMessage();
   scheduleContinueHint();
+  scheduleHeartFinale();
 }
 
 function createPetal(index) {
@@ -212,6 +262,7 @@ function startCelebration() {
   currentMessageIndex = 0;
   showCurrentMessage();
   scheduleContinueHint();
+  scheduleHeartFinale();
   startFireworks();
 
   if (!petalsContainer.childElementCount) {
