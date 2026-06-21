@@ -98,7 +98,8 @@ body {
 }
 
 .message-box {
-  width: min(680px, 86vw);
+  width: fit-content;
+  max-width: min(680px, 86vw);
   padding: clamp(18px, 4vw, 34px);
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 28px;
@@ -474,9 +475,15 @@ body {
   }
 
   .message-box {
-    width: min(100%, 88vw);
+    max-width: min(100%, 88vw);
     padding: 18px;
     font-size: clamp(1.05rem, 6vw, 1.5rem);
+  }
+
+  .message-box-left,
+  .message-box-right {
+    margin-right: 0;
+    margin-left: 0;
   }
 
   .image-right,
