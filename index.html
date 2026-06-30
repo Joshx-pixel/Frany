@@ -13,19 +13,19 @@
       </div>
 
       <section class="message-board" id="messageCard" aria-live="polite" aria-label="Mensaje de cumpleaños">
-        <article class="message-box is-active">
+        <article class="message-box is-active" tabindex="-1">
           Feliz cumpleaños Fran
         </article>
-        <article class="message-box">
+        <article class="message-box" tabindex="-1">
           te deseo lo mejor
         </article>
-        <article class="message-box">
+        <article class="message-box" tabindex="-1">
           Desde que te conozco me di cuenta que sos una persona maravillosa y muy buena onda
         </article>
-        <article class="message-box">
+        <article class="message-box" tabindex="-1">
           Quiero seguir conociéndote y seguir descubriendo la maravillosa persona que sos
         </article>
-        <article class="message-box">
+        <article class="message-box" tabindex="-1">
           Pasala muy bien en tu día que te lo mereces.
         </article>
       </section>
@@ -40,10 +40,9 @@
 
         <div class="player-controls" aria-label="Controles de reproducción">
           <button class="control-button" id="previousTrack" type="button" aria-label="Canción anterior">⏮</button>
-          <button class="control-button play-button" id="playPause" type="button" aria-label="Reproducir o pausar">▶</button>
+          <button class="control-button play-button" id="playPause" type="button" aria-label="Reproducir" aria-pressed="false">▶</button>
           <button class="control-button" id="nextTrack" type="button" aria-label="Siguiente canción">⏭</button>
         </div>
-
 
         <label class="volume-control" for="volumeControl">
           <span>Volumen</span>
@@ -57,8 +56,8 @@
       <div class="fireworks" id="fireworks" aria-hidden="true"></div>
       <div class="heart-finale" id="heartFinale" aria-hidden="true"></div>
 
-      <img src="ghostface.jpg" alt="Decoración" class="corner-image image-right" />
-      <img src="lucy.png" alt="Lucy" class="corner-image image-left" />
+      <img src="ghostface.jpg" alt="Decoración" class="corner-image image-right" aria-hidden="true" role="presentation" loading="lazy" />
+      <img src="lucy.png" alt="Lucy" class="corner-image image-left" aria-hidden="true" role="presentation" loading="lazy" />
     </main>
 
     <script src="script.js"></script>
