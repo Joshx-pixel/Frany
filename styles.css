@@ -1,3 +1,4 @@
+/* styles.css (full file with accessibility focus rule appended) */
 :root {
   --blue-hour-top: #12072f;
   --blue-hour-mid: #2f1b62;
@@ -217,6 +218,18 @@ body {
     transform: translate3d(calc(var(--drift) * -0.45), 112vh, 0) rotate(380deg);
   }
 }
+.petal {
+  position: absolute;
+  top: -10vh;
+  width: var(--size);
+  height: calc(var(--size) * 0.72);
+  border-radius: 70% 10% 70% 10%;
+  opacity: 0.88;
+  background: radial-gradient(circle at 35% 35%, var(--petal-light), var(--petal) 62%, #f06dad 100%);
+  box-shadow: 0 0 12px rgba(255, 174, 210, 0.45);
+  animation: fall var(--duration) linear var(--delay) infinite;
+}
+
 .corner-image {
   position: fixed !important;
   bottom: 0;
@@ -581,4 +594,12 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* --- A11Y: reglas de foco para message-box --- */
+.message-box:focus,
+.message-box:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255, 159, 207, 0.18);
+  border-color: var(--petal-light);
 }
